@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"sync"
 )
 
 // Streamer wraps an ffmpeg subprocess that decodes an audio URL into raw PCM (s16le, 44100Hz, stereo).
@@ -12,6 +13,9 @@ type Streamer struct {
 	cmd    *exec.Cmd
 	stdout io.ReadCloser
 	cancel context.CancelFunc
+
+	mu    sync.Mutex
+	isEOF bool
 }
 
 // NewStreamer spawns an ffmpeg process that reads from the given URL and outputs raw PCM to stdout.
@@ -51,7 +55,20 @@ func NewStreamer(audioURL string) (*Streamer, error) {
 
 // Read implements io.Reader, reading decoded PCM data from ffmpeg's stdout.
 func (s *Streamer) Read(p []byte) (int, error) {
-	return s.stdout.Read(p)
+	n, err := s.stdout.Read(p)
+	if err != nil {
+		s.mu.Lock()
+		s.isEOF = true
+		s.mu.Unlock()
+	}
+	return n, err
+}
+
+// IsEOF returns true if the ffmpeg stream has finished or encountered an error.
+func (s *Streamer) IsEOF() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.isEOF
 }
 
 // Close stops the ffmpeg process and releases resources.

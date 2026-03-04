@@ -2,7 +2,7 @@ package player
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -109,17 +109,25 @@ func (p *Player) Pause() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
+	slog.Info("Pause/Toggle requested", "isPaused", p.isPaused, "isPlaying", p.isPlaying, "hasOtoPlayer", p.otoPlayer != nil)
+
 	if p.otoPlayer == nil {
+		slog.Warn("Pause/Toggle ignored: otoPlayer is nil")
 		return
 	}
 
 	if p.isPaused {
+		slog.Info("Resuming playback")
 		p.otoPlayer.Play()
 		p.isPaused = false
 		p.isPlaying = true
 	} else {
+		slog.Info("Pausing playback")
 		p.otoPlayer.Pause()
 		p.isPaused = true
+		// we leave p.isPlaying as true or false? If paused, isPlaying is typically false in the API response.
+		// The frontend expects: isPlaying = true, isPaused = false for playing.
+		// For paused: isPlaying = true, isPaused = true or isPlaying = false, isPaused = true.
 		p.isPlaying = false
 	}
 }
@@ -238,21 +246,47 @@ func (p *Player) getVideoInfo(videoID string) (*yt.Video, error) {
 func (p *Player) monitorPlayback() {
 	p.mu.Lock()
 	currentPlayer := p.otoPlayer
+	currentStreamer := p.streamer
 	p.mu.Unlock()
 
-	if currentPlayer == nil {
+	if currentPlayer == nil || currentStreamer == nil {
 		return
 	}
 
 	// Poll until oto player reports it is no longer playing.
 	// oto has no callback mechanism, so we poll with a sleep to avoid CPU spin.
-	for currentPlayer.IsPlaying() {
+	for {
+		p.mu.Lock()
+		// Check if player was replaced/stopped manually
+		if p.otoPlayer != currentPlayer {
+			p.mu.Unlock()
+			return
+		}
+		isPaused := p.isPaused
+		p.mu.Unlock()
+
+		if !currentPlayer.IsPlaying() {
+			// If playback stopped because of a manual pause, keep waiting.
+			if isPaused {
+				time.Sleep(250 * time.Millisecond)
+				continue
+			}
+
+			// If oto reports it's not playing, check if we've actually reached the end of the stream.
+			// Sometimes otoPlayer.IsPlaying() can be briefly false if the buffer is starved or hasn't started yet.
+			if currentStreamer.IsEOF() {
+				break // Stream is finished and oto has drained its buffer
+			}
+		}
 		time.Sleep(250 * time.Millisecond)
 	}
+
+	slog.Info("Track playback finished naturally", "track", p.currentTrack.Title)
 
 	// Check if this is still the active player (not replaced by skip/new play)
 	p.mu.Lock()
 	if p.otoPlayer == currentPlayer {
+		slog.Info("Auto-advancing to next track")
 		p.stopLocked()
 		p.mu.Unlock()
 
@@ -260,8 +294,10 @@ func (p *Player) monitorPlayback() {
 		next := p.Queue.Next()
 		if next != nil {
 			if err := p.PlayTrack(next); err != nil {
-				log.Printf("auto-advance failed: %v", err)
+				slog.Error("auto-advance failed", "error", err)
 			}
+		} else {
+			slog.Info("Queue finished")
 		}
 	} else {
 		p.mu.Unlock()
