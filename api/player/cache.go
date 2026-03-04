@@ -8,11 +8,16 @@ import (
 	"sync"
 )
 
-// CacheManager handles background downloading of audio tracks via yt-dlp.
+type DownloadTask struct {
+	done chan struct{}
+	err  error
+}
+
+// CacheManager handles background and synchronous downloading of audio tracks via yt-dlp.
 type CacheManager struct {
 	cacheDir   string
 	mu         sync.Mutex
-	inProgress map[string]bool
+	inProgress map[string]*DownloadTask
 	queue      chan string
 }
 
@@ -36,7 +41,7 @@ func NewCacheManager(cacheDir string) *CacheManager {
 
 	cm := &CacheManager{
 		cacheDir:   cacheDir,
-		inProgress: make(map[string]bool),
+		inProgress: make(map[string]*DownloadTask),
 		// buffered channel to hold download requests
 		queue: make(chan string, 10000),
 	}
@@ -49,6 +54,41 @@ func NewCacheManager(cacheDir string) *CacheManager {
 	return cm
 }
 
+// CacheSync blocks until the video is cached. If it is already being cached by a background worker, it waits for it.
+func (cm *CacheManager) CacheSync(videoID string) error {
+	if cm.IsCached(videoID) {
+		return nil
+	}
+
+	cm.mu.Lock()
+	task, exists := cm.inProgress[videoID]
+	if !exists {
+		task = &DownloadTask{done: make(chan struct{})}
+		cm.inProgress[videoID] = task
+		cm.mu.Unlock()
+
+		// Run download synchronously
+		err := cm.download(videoID)
+		task.err = err
+		close(task.done)
+
+		cm.mu.Lock()
+		delete(cm.inProgress, videoID)
+		cm.mu.Unlock()
+
+		return err
+	}
+	cm.mu.Unlock()
+
+	// Wait for existing task to finish
+	slog.Info("Track is already downloading, waiting for it to finish", "videoID", videoID)
+	<-task.done
+	if cm.IsCached(videoID) {
+		return nil
+	}
+	return task.err
+}
+
 // QueueDownload adds a video ID to the background download queue if it's not already cached.
 func (cm *CacheManager) QueueDownload(videoID string) {
 	if cm.IsCached(videoID) {
@@ -56,11 +96,12 @@ func (cm *CacheManager) QueueDownload(videoID string) {
 	}
 
 	cm.mu.Lock()
-	if cm.inProgress[videoID] {
+	if _, exists := cm.inProgress[videoID]; exists {
 		cm.mu.Unlock()
 		return
 	}
-	cm.inProgress[videoID] = true
+	task := &DownloadTask{done: make(chan struct{})}
+	cm.inProgress[videoID] = task
 	cm.mu.Unlock()
 
 	// add to channel without blocking
@@ -86,27 +127,44 @@ func (cm *CacheManager) GetCachedPath(videoID string) string {
 	return filepath.Join(cm.cacheDir, videoID+".m4a")
 }
 
+func (cm *CacheManager) download(videoID string) error {
+	slog.Info("Caching track via yt-dlp", "videoID", videoID)
+
+	path := cm.GetCachedPath(videoID)
+
+	// Use yt-dlp to download and convert to m4a
+	cmd := exec.Command("yt-dlp",
+		"--quiet", "--no-warnings",
+		"-x", "--audio-format", "m4a",
+		"-o", path,
+		"https://music.youtube.com/watch?v="+videoID,
+	)
+
+	if err := cmd.Run(); err != nil {
+		slog.Error("Failed to cache track", "videoID", videoID, "error", err)
+		// clean up any partial file
+		_ = os.Remove(path)
+		return err
+	}
+
+	slog.Info("Successfully cached track", "videoID", videoID)
+	return nil
+}
+
 func (cm *CacheManager) worker() {
 	for videoID := range cm.queue {
-		slog.Info("Caching track via yt-dlp", "videoID", videoID)
+		cm.mu.Lock()
+		task, exists := cm.inProgress[videoID]
+		cm.mu.Unlock()
 
-		path := cm.GetCachedPath(videoID)
-
-		// Use yt-dlp to download and convert to m4a
-		cmd := exec.Command("yt-dlp",
-			"--quiet", "--no-warnings",
-			"-x", "--audio-format", "m4a",
-			"-o", path,
-			"https://music.youtube.com/watch?v="+videoID,
-		)
-
-		if err := cmd.Run(); err != nil {
-			slog.Error("Failed to cache track", "videoID", videoID, "error", err)
-			// clean up any partial file
-			_ = os.Remove(path)
-		} else {
-			slog.Info("Successfully cached track", "videoID", videoID)
+		if !exists {
+			// Already downloaded by CacheSync, or some other edge case
+			continue
 		}
+
+		err := cm.download(videoID)
+		task.err = err
+		close(task.done)
 
 		cm.mu.Lock()
 		delete(cm.inProgress, videoID)

@@ -67,22 +67,16 @@ func (p *Player) PlayTrack(track *models.Track) error {
 	// Stop any current playback
 	p.stopLocked()
 
-	var streamURL string
-	if DefaultCacheManager != nil && DefaultCacheManager.IsCached(track.VideoID) {
-		streamURL = DefaultCacheManager.GetCachedPath(track.VideoID)
-		slog.Info("Playing track from local cache", "videoID", track.VideoID)
-	} else {
-		// Resolve audio stream URL via kkdai/youtube
-		var err error
-		streamURL, err = p.resolveAudioURL(track.VideoID)
-		if err != nil {
-			return fmt.Errorf("resolving audio for %s: %w", track.VideoID, err)
-		}
-
-		if DefaultCacheManager != nil {
-			DefaultCacheManager.QueueDownload(track.VideoID)
+	// Always sync cache the track before playing
+	if DefaultCacheManager != nil {
+		if err := DefaultCacheManager.CacheSync(track.VideoID); err != nil {
+			slog.Error("Failed to cache track synchronously", "videoID", track.VideoID, "error", err)
+			return fmt.Errorf("failed to cache track for playing: %w", err)
 		}
 	}
+
+	streamURL := DefaultCacheManager.GetCachedPath(track.VideoID)
+	slog.Info("Playing track from local cache", "videoID", track.VideoID)
 
 	// Enrich track info if title is missing
 	if track.Title == "" {
@@ -94,11 +88,7 @@ func (p *Player) PlayTrack(track *models.Track) error {
 	}
 
 	// Start ffmpeg streamer
-	isLocal := false
-	if DefaultCacheManager != nil && DefaultCacheManager.IsCached(track.VideoID) {
-		isLocal = true
-	}
-	streamer, err := NewStreamer(streamURL, isLocal)
+	streamer, err := NewStreamer(streamURL, true)
 	if err != nil {
 		return fmt.Errorf("creating audio streamer: %w", err)
 	}
