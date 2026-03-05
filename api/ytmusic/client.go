@@ -481,19 +481,64 @@ func parseLibraryPlaylistItem(item interface{}) *models.Playlist {
 		return nil
 	}
 
-	title := extractText(navigatePath(rendererMap, "title"))
-	subtitle := extractText(navigatePath(rendererMap, "subtitle"))
+	// Get browse ID - must have a browseEndpoint to be a real playlist
 	browseID := ""
 	navEndpoint := navigatePath(rendererMap, "navigationEndpoint", "browseEndpoint", "browseId")
 	if id, ok := navEndpoint.(string); ok {
 		browseID = id
 	}
+	// Skip "New playlist" which has createPlaylistEndpoint instead
+	if browseID == "" {
+		if createEndpoint := navigatePath(rendererMap, "navigationEndpoint", "createPlaylistEndpoint"); createEndpoint != nil {
+			return nil // Skip "New playlist" item
+		}
+		return nil
+	}
+
+	// Extract title - may be nested in runs
+	title := extractText(navigatePath(rendererMap, "title"))
+
+	// Extract subtitle (author + track count)
+	subtitleRuns := navigatePath(rendererMap, "subtitle", "runs")
+	var subtitleParts []string
+	if runs, ok := subtitleRuns.([]interface{}); ok {
+		for _, run := range runs {
+			if runMap, ok := run.(map[string]interface{}); ok {
+				if text, ok := runMap["text"].(string); ok {
+					subtitleParts = append(subtitleParts, text)
+				}
+			}
+		}
+	}
+	subtitle := ""
+	trackCount := 0
+	for _, part := range subtitleParts {
+		subtitle += part
+		// Try to extract track count from text like "16 tracks"
+		if len(part) > 7 && part[len(part)-7:] == " tracks" {
+			// Extract number
+			for i := 0; i < len(part); i++ {
+				if part[i] >= '0' && part[i] <= '9' {
+					j := i
+					for j < len(part) && part[j] >= '0' && part[j] <= '9' {
+						j++
+					}
+					if j > i {
+						fmt.Sscanf(part[i:j], "%d", &trackCount)
+						break
+					}
+				}
+			}
+		}
+	}
+
 	thumbnail := extractThumbnailFromObj(rendererMap)
 
 	return &models.Playlist{
 		ID:           browseID,
 		Title:        title,
 		Author:       subtitle,
+		TrackCount:   trackCount,
 		ThumbnailURL: thumbnail,
 	}
 }
