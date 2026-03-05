@@ -173,6 +173,8 @@ func main() {
 		auth.POST("/player/previous", playerHandler.PreviousTrack)
 		auth.POST("/player/stop", playerHandler.Stop)
 		auth.POST("/player/volume", playerHandler.SetVolume)
+		auth.POST("/player/shuffle", playerHandler.ToggleShuffle)
+		auth.POST("/player/repeat", playerHandler.SetRepeat)
 		auth.GET("/player/state", playerHandler.GetState)
 
 		// Queue

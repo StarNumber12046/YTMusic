@@ -47,9 +47,14 @@ function PlaylistsView() {
 
   const cachePlaylistMutation = useMutation({
     ...postPlaylistsByIdCacheMutation(),
-    onSuccess: () => showToast(Toast.Style.Success, "Caching playlist in background"),
+    onSuccess: () =>
+      showToast(Toast.Style.Success, "Caching playlist in background"),
     onError: (err) =>
-      showToast(Toast.Style.Failure, "Failed to queue playlist caching", String(err)),
+      showToast(
+        Toast.Style.Failure,
+        "Failed to queue playlist caching",
+        String(err),
+      ),
   });
 
   if (error) {
@@ -68,7 +73,11 @@ function PlaylistsView() {
             <ActionPanel>
               <Action.Push
                 title="View Tracks"
-                target={<QueryProvider><PlaylistDetail id={pl.id!} /></QueryProvider>}
+                target={
+                  <QueryProvider>
+                    <PlaylistDetail id={pl.id!} />
+                  </QueryProvider>
+                }
               />
               <Action
                 title="Play Playlist"

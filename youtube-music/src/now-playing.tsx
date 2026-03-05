@@ -16,6 +16,8 @@ import {
   postPlayerNextMutation,
   postPlayerPreviousMutation,
   postPlayerStopMutation,
+  postPlayerShuffleMutation,
+  postPlayerRepeatMutation,
 } from "./generated/@tanstack/react-query.gen";
 
 export default function Command() {
@@ -68,6 +70,24 @@ function NowPlaying() {
       showToast(Toast.Style.Failure, "Failed to stop playback", String(err)),
   });
 
+  const shuffleMutation = useMutation({
+    ...postPlayerShuffleMutation(),
+    onError: (err) =>
+      showToast(Toast.Style.Failure, "Failed to toggle shuffle", String(err)),
+  });
+
+  const repeatMutation = useMutation({
+    ...postPlayerRepeatMutation(),
+    onError: (err) =>
+      showToast(Toast.Style.Failure, "Failed to set repeat", String(err)),
+  });
+
+  const cycleRepeat = () => {
+    const current = data?.repeat || "off";
+    const next = current === "off" ? "all" : current === "all" ? "one" : "off";
+    repeatMutation.mutate({ body: { repeat: next } });
+  };
+
   if (error) {
     return (
       <Detail
@@ -104,11 +124,35 @@ function NowPlaying() {
             icon={Icon.SpeakerUp}
           />
           {data?.queue_length ? (
-            <Detail.Metadata.Label
-              title="Queue"
-              text={`${(data.queue_position ?? 0) + 1} / ${data.queue_length}`}
-              icon={Icon.List}
-            />
+            <>
+              <Detail.Metadata.Label
+                title="Queue"
+                text={`${(data.queue_position ?? 0) + 1} / ${data.queue_length}`}
+                icon={Icon.List}
+              />
+              <Detail.Metadata.Label
+                title="Shuffle"
+                text={data?.shuffle ? "On" : "Off"}
+                icon={data?.shuffle ? Icon.ArrowUp : Icon.ArrowDown}
+              />
+              <Detail.Metadata.Label
+                title="Repeat"
+                text={
+                  data?.repeat === "one"
+                    ? "One"
+                    : data?.repeat === "all"
+                      ? "All"
+                      : "Off"
+                }
+                icon={
+                  data?.repeat === "one"
+                    ? Icon.Repeat
+                    : data?.repeat === "all"
+                      ? Icon.Repeat
+                      : Icon.List
+                }
+              />
+            </>
           ) : null}
         </Detail.Metadata>
       }
@@ -133,6 +177,16 @@ function NowPlaying() {
             title="Stop"
             icon={Icon.Stop}
             onAction={() => stopMutation.mutate()}
+          />
+          <Action
+            title={data?.shuffle ? "Disable Shuffle" : "Enable Shuffle"}
+            icon={data?.shuffle ? Icon.ArrowUp : Icon.ArrowDown}
+            onAction={() => shuffleMutation.mutate()}
+          />
+          <Action
+            title={`Repeat: ${data?.repeat === "one" ? "One" : data?.repeat === "all" ? "All" : "Off"}`}
+            icon={Icon.Repeat}
+            onAction={cycleRepeat}
           />
         </ActionPanel>
       }

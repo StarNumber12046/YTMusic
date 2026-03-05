@@ -58,6 +58,8 @@ type PlayerState struct {
 	QueueLength   int    `json:"queue_length" example:"5"`
 	QueuePosition int    `json:"queue_position" example:"0"`
 	Volume        int    `json:"volume" example:"100"`
+	Shuffle       bool   `json:"shuffle" example:"false"`
+	Repeat        string `json:"repeat" example:"off"` // "off", "all", "one"
 }
 
 // QueueItem represents a single item in the playback queue.
@@ -144,6 +146,11 @@ type MessageResponse struct {
 // VolumeRequest is the request body to set volume.
 type VolumeRequest struct {
 	Volume int `json:"volume" binding:"required" example:"80"`
+}
+
+// RepeatRequest is the request body to set repeat mode.
+type RepeatRequest struct {
+	Repeat string `json:"repeat" binding:"required" example:"all"` // "off", "all", "one"
 }
 
 // UserInfoResponse holds account information.

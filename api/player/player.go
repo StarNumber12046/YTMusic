@@ -34,6 +34,8 @@ type Player struct {
 	isPlaying    bool
 	isPaused     bool
 	volume       int // 0-100
+	shuffle      bool
+	repeat       string // "off", "all", "one"
 }
 
 // NewPlayer creates a new Player instance and initialises the audio context.
@@ -161,10 +163,30 @@ func (p *Player) stopLocked() {
 // Next skips to the next track in the queue.
 // Returns the new track or nil if queue is exhausted.
 func (p *Player) Next() (*models.Track, error) {
+	p.mu.Lock()
+	repeat := p.repeat
+	currentTrack := p.currentTrack
+	p.mu.Unlock()
+
+	// Handle repeat "one" - replay current track
+	if repeat == "one" && currentTrack != nil {
+		if err := p.PlayTrack(currentTrack); err != nil {
+			return nil, err
+		}
+		return currentTrack, nil
+	}
+
 	next := p.Queue.Next()
 	if next == nil {
-		p.Stop()
-		return nil, nil
+		// Handle repeat "all" - wrap to beginning
+		if repeat == "all" && p.Queue.Len() > 0 {
+			p.Queue.SetPosition(0)
+			next = p.Queue.Next()
+		}
+		if next == nil {
+			p.Stop()
+			return nil, nil
+		}
 	}
 	if err := p.PlayTrack(next); err != nil {
 		return nil, err
@@ -196,6 +218,8 @@ func (p *Player) State() models.PlayerState {
 		QueueLength:   p.Queue.Len(),
 		QueuePosition: p.Queue.Position(),
 		Volume:        p.volume,
+		Shuffle:       p.shuffle,
+		Repeat:        p.repeat,
 	}
 }
 
@@ -215,6 +239,47 @@ func (p *Player) SetVolume(vol int) {
 	if p.otoPlayer != nil {
 		// oto volume is a float64 where 1.0 = 100%
 		p.otoPlayer.SetVolume(float64(vol) / 100.0)
+	}
+}
+
+// ToggleShuffle toggles shuffle mode on/off.
+func (p *Player) ToggleShuffle() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.shuffle = !p.shuffle
+	if p.shuffle {
+		p.Queue.Shuffle()
+	} else {
+		p.Queue.Unshuffle()
+	}
+}
+
+// SetRepeat sets the repeat mode: "off", "all", or "one".
+func (p *Player) SetRepeat(mode string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if mode != "off" && mode != "all" && mode != "one" {
+		return
+	}
+	p.repeat = mode
+}
+
+// CycleRepeat cycles through repeat modes: off -> all -> one -> off.
+func (p *Player) CycleRepeat() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	switch p.repeat {
+	case "off":
+		p.repeat = "all"
+	case "all":
+		p.repeat = "one"
+	case "one":
+		p.repeat = "off"
+	default:
+		p.repeat = "off"
 	}
 }
 

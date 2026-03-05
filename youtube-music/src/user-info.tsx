@@ -1,9 +1,19 @@
-import { Action, ActionPanel, Detail, Icon, Toast, showToast } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Detail,
+  Icon,
+  Toast,
+  showToast,
+} from "@raycast/api";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { initClient } from "./lib/client";
 import { QueryProvider } from "./components/QueryProvider";
-import { getUserOptions, deleteAuthLogoutMutation } from "./generated/@tanstack/react-query.gen";
+import {
+  getUserOptions,
+  deleteAuthLogoutMutation,
+} from "./generated/@tanstack/react-query.gen";
 import { clearToken } from "./lib/auth";
 
 export default function Command() {
@@ -31,7 +41,8 @@ function UserInfoView() {
       await clearToken();
       showToast(Toast.Style.Success, "Logged out");
     },
-    onError: (err) => showToast(Toast.Style.Failure, "Logout failed", String(err))
+    onError: (err) =>
+      showToast(Toast.Style.Failure, "Logout failed", String(err)),
   });
 
   if (isLoading) return <Detail isLoading />;
@@ -54,7 +65,11 @@ function UserInfoView() {
       markdown={`# User Info\n\n**Account**: ${data?.account_name || "Unknown"}\n\n**Channel ID**: ${data?.channel_id || "Unknown"}\n\n**Channel Title**: ${data?.channel_title || "Unknown"}`}
       actions={
         <ActionPanel>
-          <Action title="Logout" icon={Icon.Logout} onAction={() => logoutMutation.mutate()} />
+          <Action
+            title="Logout"
+            icon={Icon.Logout}
+            onAction={() => logoutMutation.mutate()}
+          />
         </ActionPanel>
       }
     />

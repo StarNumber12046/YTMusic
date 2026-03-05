@@ -1,6 +1,7 @@
 package player
 
 import (
+	"math/rand"
 	"sync"
 
 	"ytmusic_api/models"
@@ -8,9 +9,10 @@ import (
 
 // Queue manages an ordered list of tracks for playback.
 type Queue struct {
-	mu       sync.RWMutex
-	items    []models.Track
-	position int // index of the currently active track
+	mu            sync.RWMutex
+	items         []models.Track
+	position      int            // index of the currently active track
+	originalOrder []models.Track // stored for unshuffle
 }
 
 // NewQueue creates an empty queue.
@@ -169,6 +171,63 @@ func (q *Queue) ReplaceAll(tracks []models.Track) {
 	if DefaultCacheManager != nil {
 		for _, track := range tracks {
 			DefaultCacheManager.QueueDownload(track.VideoID)
+		}
+	}
+}
+
+// Shuffle shuffles the queue items (keeping current track at position).
+func (q *Queue) Shuffle() {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	if len(q.items) <= 1 {
+		return
+	}
+
+	// Store original order before shuffling
+	q.originalOrder = make([]models.Track, len(q.items))
+	copy(q.originalOrder, q.items)
+
+	// Shuffle items after current position
+	currentPos := q.position
+	if currentPos < 0 {
+		currentPos = 0
+	}
+	if currentPos < len(q.items)-1 {
+		// Fisher-Yates shuffle for items after current
+		for i := len(q.items) - 1; i > currentPos; i-- {
+			j := rand.Intn(i - currentPos + 1)
+			q.items[i], q.items[currentPos+j] = q.items[currentPos+j], q.items[i]
+		}
+	}
+}
+
+// Unshuffle restores the original queue order before shuffle.
+func (q *Queue) Unshuffle() {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	if q.originalOrder == nil {
+		return
+	}
+
+	// Find current track in original order to restore position
+	currentTrack := ""
+	if q.position >= 0 && q.position < len(q.items) {
+		currentTrack = q.items[q.position].VideoID
+	}
+
+	q.items = make([]models.Track, len(q.originalOrder))
+	copy(q.items, q.originalOrder)
+	q.originalOrder = nil
+
+	// Restore position based on current track
+	if currentTrack != "" {
+		for i, track := range q.items {
+			if track.VideoID == currentTrack {
+				q.position = i
+				break
+			}
 		}
 	}
 }

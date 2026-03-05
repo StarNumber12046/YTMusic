@@ -107,6 +107,13 @@ definitions:
       queue_position:
         example: 0
         type: integer
+      repeat:
+        description: '"off", "all", "one"'
+        example: "off"
+        type: string
+      shuffle:
+        example: false
+        type: boolean
       volume:
         example: 100
         type: integer
@@ -175,6 +182,15 @@ definitions:
       length:
         example: 5
         type: integer
+    type: object
+  models.RepeatRequest:
+    properties:
+      repeat:
+        description: '"off", "all", "one"'
+        example: all
+        type: string
+    required:
+    - repeat
     type: object
   models.SearchResponse:
     properties:
@@ -436,6 +452,58 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Go to previous track
+      tags:
+      - player
+  /player/repeat:
+    post:
+      consumes:
+      - application/json
+      description: 'Sets repeat mode: "off", "all", "one", or "cycle" (cycles to next
+        mode).'
+      parameters:
+      - description: Repeat mode
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.RepeatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PlayerState'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Set repeat mode
+      tags:
+      - player
+  /player/shuffle:
+    post:
+      description: Toggles shuffle mode on or off. When enabled, queue is shuffled.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PlayerState'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Toggle shuffle mode
       tags:
       - player
   /player/state:

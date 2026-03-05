@@ -290,6 +290,88 @@ const docTemplate = `{
                 }
             }
         },
+        "/player/repeat": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Sets repeat mode: \"off\", \"all\", \"one\", or \"cycle\" (cycles to next mode).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "player"
+                ],
+                "summary": "Set repeat mode",
+                "parameters": [
+                    {
+                        "description": "Repeat mode",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RepeatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PlayerState"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/player/shuffle": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Toggles shuffle mode on or off. When enabled, queue is shuffled.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "player"
+                ],
+                "summary": "Toggle shuffle mode",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PlayerState"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/player/state": {
             "get": {
                 "security": [
@@ -991,6 +1073,15 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 0
                 },
+                "repeat": {
+                    "description": "\"off\", \"all\", \"one\"",
+                    "type": "string",
+                    "example": "off"
+                },
+                "shuffle": {
+                    "type": "boolean",
+                    "example": false
+                },
                 "volume": {
                     "type": "integer",
                     "example": 100
@@ -1090,6 +1181,19 @@ const docTemplate = `{
                 "length": {
                     "type": "integer",
                     "example": 5
+                }
+            }
+        },
+        "models.RepeatRequest": {
+            "type": "object",
+            "required": [
+                "repeat"
+            ],
+            "properties": {
+                "repeat": {
+                    "description": "\"off\", \"all\", \"one\"",
+                    "type": "string",
+                    "example": "all"
                 }
             }
         },

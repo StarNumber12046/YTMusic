@@ -190,3 +190,48 @@ func (h *PlayerHandler) SetVolume(c *gin.Context) {
 	h.Player.SetVolume(req.Volume)
 	c.JSON(http.StatusOK, h.Player.State())
 }
+
+// ToggleShuffle godoc
+// @Summary      Toggle shuffle mode
+// @Description  Toggles shuffle mode on or off. When enabled, queue is shuffled.
+// @Tags         player
+// @Produce      json
+// @Security     ApiKeyAuth
+// @Success      200 {object} models.PlayerState
+// @Failure      401 {object} models.ErrorResponse
+// @Router       /player/shuffle [post]
+func (h *PlayerHandler) ToggleShuffle(c *gin.Context) {
+	h.Player.ToggleShuffle()
+	c.JSON(http.StatusOK, h.Player.State())
+}
+
+// SetRepeat godoc
+// @Summary      Set repeat mode
+// @Description  Sets repeat mode: "off", "all", "one", or "cycle" (cycles to next mode).
+// @Tags         player
+// @Accept       json
+// @Produce      json
+// @Security     ApiKeyAuth
+// @Param        body body models.RepeatRequest true "Repeat mode"
+// @Success      200 {object} models.PlayerState
+// @Failure      400 {object} models.ErrorResponse
+// @Failure      401 {object} models.ErrorResponse
+// @Router       /player/repeat [post]
+func (h *PlayerHandler) SetRepeat(c *gin.Context) {
+	var req models.RepeatRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: "invalid request body: " + err.Error(),
+			Code:  http.StatusBadRequest,
+		})
+		return
+	}
+
+	// Handle cycle mode
+	if req.Repeat == "cycle" {
+		h.Player.CycleRepeat()
+	} else {
+		h.Player.SetRepeat(req.Repeat)
+	}
+	c.JSON(http.StatusOK, h.Player.State())
+}
