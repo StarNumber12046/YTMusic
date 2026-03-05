@@ -131,6 +131,11 @@ func (c *Client) GetPlaylist(session *Session, playlistID string) (*models.Playl
 		return nil, err
 	}
 
+	// Debug: log the raw response
+	if jsonBytes, marshalErr := json.MarshalIndent(raw, "", "  "); marshalErr == nil {
+		slog.Info("===== PLAYLIST DETAIL RAW RESPONSE =====", "playlistID", playlistID, "json", string(jsonBytes))
+	}
+
 	return parsePlaylistResponse(raw, playlistID), nil
 }
 
@@ -352,43 +357,61 @@ func parsePlaylistResponse(raw map[string]interface{}, playlistID string) *model
 	if headerRenderer == nil {
 		headerRenderer = navigatePath(raw, "header", "musicDetailHeaderRenderer")
 	}
+	if headerRenderer == nil {
+		slog.Debug("No header renderer found")
+	}
 	if headerMap, ok := headerRenderer.(map[string]interface{}); ok {
 		resp.Playlist.Title = extractText(navigatePath(headerMap, "title"))
 		resp.Playlist.Description = extractText(navigatePath(headerMap, "description"))
 		resp.Playlist.ThumbnailURL = extractThumbnailFromObj(headerMap)
+		slog.Debug("Parsed header", "title", resp.Playlist.Title)
 	}
 
 	// Extract tracks
-	sectionContents := navigatePath(raw, "contents", "singleColumnBrowseResultsRenderer",
-		"tabs")
+	sectionContents := navigatePath(raw, "contents", "singleColumnBrowseResultsRenderer", "tabs")
 	tabs, ok := sectionContents.([]interface{})
 	if !ok || len(tabs) == 0 {
+		slog.Debug("No tabs found in contents")
 		return resp
 	}
 
-	tabContents := navigatePath(tabs[0], "tabRenderer", "content", "sectionListRenderer",
-		"contents")
+	tabContents := navigatePath(tabs[0], "tabRenderer", "content", "sectionListRenderer", "contents")
 	sections, ok := tabContents.([]interface{})
 	if !ok || len(sections) == 0 {
+		slog.Debug("No sections in tab")
 		return resp
 	}
+	slog.Debug("Found sections", "count", len(sections))
 
-	musicContents := navigatePath(sections[0], "musicShelfRenderer", "contents")
-	if musicContents == nil {
-		musicContents = navigatePath(sections[0], "musicPlaylistShelfRenderer", "contents")
-	}
-	items, ok := musicContents.([]interface{})
-	if !ok {
-		return resp
-	}
+	for i, section := range sections {
+		slog.Debug("Checking section", "i", i)
+		musicContents := navigatePath(section, "musicShelfRenderer", "contents")
+		if musicContents == nil {
+			musicContents = navigatePath(section, "musicPlaylistShelfRenderer", "contents")
+		}
+		if musicContents == nil {
+			musicContents = navigatePath(section, "gridRenderer", "items")
+		}
 
-	for _, item := range items {
-		track := parsePlaylistItem(item)
-		if track != nil {
-			resp.Tracks = append(resp.Tracks, *track)
+		items, ok := musicContents.([]interface{})
+		if !ok || items == nil {
+			slog.Debug("No items found in section", "i", i)
+			continue
+		}
+
+		slog.Debug("Found items", "count", len(items))
+
+		for _, item := range items {
+			track := parsePlaylistItem(item)
+			if track != nil {
+				resp.Tracks = append(resp.Tracks, *track)
+				slog.Debug("Parsed track", "title", track.Title)
+			}
 		}
 	}
+
 	resp.Playlist.TrackCount = len(resp.Tracks)
+	slog.Info("Parsed playlist", "title", resp.Playlist.Title, "trackCount", len(resp.Tracks))
 
 	return resp
 }
