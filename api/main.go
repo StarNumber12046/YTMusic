@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"ytmusic_api/config"
 	"ytmusic_api/handlers"
@@ -35,14 +37,79 @@ import (
 // @in header
 // @name X-Session-Token
 
-func main() {
-	// Setup structured logger
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
+// setupFileLogger creates a log file in the app data directory
+func setupFileLogger() *os.File {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil
+	}
+
+	logDir := filepath.Join(home, ".ytmusic", "logs")
+	if err := os.MkdirAll(logDir, 0755); err != nil {
+		return nil
+	}
+
+	logFile, err := os.OpenFile(
+		filepath.Join(logDir, "ytmusic.log"),
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+		0644,
+	)
+	if err != nil {
+		return nil
+	}
+
+	// Replace default logger with one that writes to both console and file
+	fileHandler := slog.NewTextHandler(logFile, &slog.HandlerOptions{Level: slog.LevelDebug})
+	consoleHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
+
+	// Create a combined handler
+	multiHandler := &multiHandler{handlers: []slog.Handler{consoleHandler, fileHandler}}
+	logger := slog.New(multiHandler)
 	slog.SetDefault(logger)
 
-	// Load config
+	return logFile
+}
+
+// multiHandler writes to multiple handlers
+type multiHandler struct {
+	handlers []slog.Handler
+}
+
+func (h *multiHandler) Handle(ctx context.Context, r slog.Record) error {
+	for _, handler := range h.handlers {
+		if err := handler.Handle(ctx, r); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *multiHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	return true
+}
+
+func (h *multiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	handlers := make([]slog.Handler, len(h.handlers))
+	for i, handler := range h.handlers {
+		handlers[i] = handler.WithAttrs(attrs)
+	}
+	return &multiHandler{handlers: handlers}
+}
+
+func (h *multiHandler) WithGroup(name string) slog.Handler {
+	handlers := make([]slog.Handler, len(h.handlers))
+	for i, handler := range h.handlers {
+		handlers[i] = handler.WithGroup(name)
+	}
+	return &multiHandler{handlers: handlers}
+}
+
+func main() {
+	// Setup structured logger - console at info, file at debug
+	setupFileLogger()
+
+	logger := slog.Default()
+
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		logger.Error("failed to load config", "error", err)
