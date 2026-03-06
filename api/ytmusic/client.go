@@ -536,8 +536,18 @@ func parseArtistResponse(raw map[string]interface{}, browseID string) *models.Ar
 
 	for _, section := range sections {
 		sectionTitle := extractText(navigatePath(section, "musicShelfRenderer", "title"))
+		if sectionTitle == "" {
+			sectionTitle = extractText(navigatePath(section, "musicCarouselShelfRenderer", "header", "musicCarouselShelfBasicHeaderRenderer", "title"))
+		}
+		if sectionTitle == "" {
+			sectionTitle = extractText(navigatePath(section, "gridRenderer", "header", "gridHeaderRenderer", "title"))
+		}
+
 		musicContents := navigatePath(section, "musicShelfRenderer", "contents")
 		gridContents := navigatePath(section, "gridRenderer", "items")
+		if gridContents == nil {
+			gridContents = navigatePath(section, "musicCarouselShelfRenderer", "contents")
+		}
 
 		if musicContents != nil {
 			items, ok := musicContents.([]interface{})
@@ -559,7 +569,7 @@ func parseArtistResponse(raw map[string]interface{}, browseID string) *models.Ar
 			if !ok {
 				continue
 			}
-			if containsStr(sectionTitle, "Album") || containsStr(sectionTitle, "Release") {
+			if containsStr(sectionTitle, "Album") || containsStr(sectionTitle, "Release") || containsStr(sectionTitle, "Discography") || sectionTitle == "" {
 				for _, item := range items {
 					album := parseArtistAlbumItem(item)
 					if album != nil {
