@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"strings"
@@ -12,6 +13,11 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+)
+
+var (
+	apiHost string
+	apiPort int
 )
 
 var (
@@ -354,6 +360,10 @@ func (m model) View() string {
 }
 
 func main() {
+	flag.StringVar(&apiHost, "host", "localhost", "API server host")
+	flag.IntVar(&apiPort, "port", 8080, "API server port")
+	flag.Parse()
+
 	l := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
 	l.Title = "Results"
 	l.SetShowStatusBar(false)
@@ -364,7 +374,7 @@ func main() {
 	ti.CharLimit = 156
 	ti.Width = 40
 
-	client := api.NewClient("http://localhost:8080", "")
+	client := api.NewClient(fmt.Sprintf("http://%s:%d", apiHost, apiPort), "")
 
 	m := model{
 		client:    client,
