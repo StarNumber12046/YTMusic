@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -354,6 +355,11 @@ func (m model) View() string {
 }
 
 func main() {
+	apiUrl := os.Getenv("YTMUSIC_API_URL")
+	if apiUrl == "" {
+		apiUrl = "http://localhost:8080"
+	}
+
 	l := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
 	l.Title = "Results"
 	l.SetShowStatusBar(false)
@@ -364,7 +370,7 @@ func main() {
 	ti.CharLimit = 156
 	ti.Width = 40
 
-	client := api.NewClient("http://localhost:8080", "")
+	client := api.NewClient(apiUrl, "")
 
 	m := model{
 		client:    client,
