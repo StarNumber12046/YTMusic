@@ -116,7 +116,7 @@ jobs:
       - name: Build Raycast extension
         working-directory: ./youtube-music
         run: |
-          pnpm run build
+          pnpm run build -- -e dist
 
       - name: Upload Raycast artifact
         uses: actions/upload-artifact@v4
