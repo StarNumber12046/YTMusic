@@ -43,13 +43,21 @@ jobs:
         with:
           go-version: '1.25'
 
-      - name: Install GTK3
-        run: |
-          choco install mingw-w64-x86_64-gtk3 -y
+      - name: Install msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: mingw64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gtk3
+            mingw-w64-x86_64-glib2
+            mingw-w64-x86_64-cairo
+            mingw-w64-x86_64-gdk-pixbuf2
 
       - name: Build GUI
         working-directory: ./gui
         run: |
+          $env:Path = "C:\msys64\mingw64\bin;$env:Path"
           go build -o ytmusic-gui.exe .
 
       - name: Upload GUI artifact
@@ -114,9 +122,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ytmusic-raycast-windows
-          path: |
-            youtube-music/dist/*.tar.gz
-            youtube-music/dist/*.zip
+          path: youtube-music/dist
 
   release:
     needs: [api, gui, tui, raycast]
@@ -133,7 +139,7 @@ jobs:
             ytmusic-api-windows/ytmusic-api.exe
             ytmusic-gui-windows/ytmusic-gui.exe
             ytmusic-tui-windows/ytmusic-tui.exe
-            ytmusic-raycast-windows/*
+            ytmusic-raycast-windows/**/*
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
