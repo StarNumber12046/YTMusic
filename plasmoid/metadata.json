@@ -3,14 +3,18 @@
     "KPlugin": {
         "Authors": [
             {
-                "Email": "your.email@example.com",
-                "Name": "You"
+                "Email": "starnumber.official12046@gmail.com",
+                "Name": "StarNumber"
+            },
+            {
+                "Email": "oliik2013@oliik2013.thedev.me",
+                "Name": "oliik2013"
             }
         ],
         "Category": "Multimedia",
         "Description": "A YouTube Music player widget for Plasma",
         "Icon": "youtube",
-        "Id": "org.kde.ytmusic",
+        "Id": "cat.misty.ytmusic",
         "License": "MIT",
         "Name": "YouTube Music",
         "Version": "1.0.0",

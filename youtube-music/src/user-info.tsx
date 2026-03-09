@@ -53,7 +53,7 @@ function UserInfoView() {
         markdown={`**Failed to load user info**\n\n\`\`\`\n${error}\n\`\`\`\n\nMake sure you are logged in.`}
         actions={
           <ActionPanel>
-            <Action title="Logout" onAction={() => logoutMutation.mutate()} />
+            <Action title="Logout" onAction={() => logoutMutation.mutate({} as any)} />
           </ActionPanel>
         }
       />
@@ -68,7 +68,7 @@ function UserInfoView() {
           <Action
             title="Logout"
             icon={Icon.Logout}
-            onAction={() => logoutMutation.mutate()}
+            onAction={() => logoutMutation.mutate({} as any)}
           />
         </ActionPanel>
       }
