@@ -42,8 +42,8 @@ function LoginView() {
   const loginMutation = useMutation({
     ...postAuthLoginMutation(),
     onSuccess: async (data) => {
-      if (data.data?.token) {
-        await saveToken(data.data.token, data.data.expires_at!);
+      if (data?.token) {
+        await saveToken(data.token, data.expires_at!);
         showToast(Toast.Style.Success, "Logged in successfully");
         await initClient();
         refetch();
@@ -139,10 +139,10 @@ function LoginView() {
         markdown={`# You are authenticated\n\n**Account**: ${status.account_name || "Unknown"}\n\n**Session Expires**: ${new Date(status.expires_at!).toLocaleString()}`}
         actions={
           <ActionPanel>
-            <Action title="Logout" onAction={() => logoutMutation.mutate()} />
+            <Action title="Logout" onAction={() => logoutMutation.mutate({} as any)} />
             <Action
               title="Refresh Session"
-              onAction={() => refreshMutation.mutate()}
+              onAction={() => refreshMutation.mutate(undefined)}
               shortcut={{ modifiers: ["cmd"], key: "r" }}
             />
             <Action

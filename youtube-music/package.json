@@ -22,27 +22,124 @@
       "default": "localhost",
       "required": true,
       "data": [
-        { "title": "Localhost (pre-set cookies)", "value": "localhost" },
-        { "title": "Cookie Login", "value": "cookies" }
+        {
+          "title": "Localhost (pre-set cookies)",
+          "value": "localhost"
+        },
+        {
+          "title": "Cookie Login",
+          "value": "cookies"
+        }
       ]
     }
   ],
   "commands": [
-    { "name": "play-pause",     "title": "Play / Pause",     "description": "Play or pause the current track", "mode": "no-view", "subtitle": "YouTube Music" },
-    { "name": "next-track",     "title": "Next Track",       "description": "Skip to the next track in the queue", "mode": "no-view", "subtitle": "YouTube Music" },
-    { "name": "previous-track", "title": "Previous Track",   "description": "Go back to the previous track", "mode": "no-view", "subtitle": "YouTube Music" },
-    { "name": "stop",           "title": "Stop",             "description": "Stop playback completely", "mode": "no-view", "subtitle": "YouTube Music" },
-    { "name": "set-volume",     "title": "Set Volume",       "description": "Set the playback volume", "mode": "no-view", "subtitle": "YouTube Music",
-      "arguments": [{ "name": "volume", "type": "text", "placeholder": "0-100", "required": true }] },
-    { "name": "shuffle",        "title": "Toggle Shuffle",   "description": "Toggle shuffle mode on or off", "mode": "no-view", "subtitle": "YouTube Music" },
-    { "name": "repeat",         "title": "Cycle Repeat",     "description": "Cycle through repeat modes: off -> all -> one", "mode": "no-view", "subtitle": "YouTube Music" },
-    { "name": "now-playing",    "title": "Now Playing",      "description": "View current track and control playback", "mode": "view",    "subtitle": "YouTube Music" },
-    { "name": "search",         "title": "Search",           "description": "Search for songs, artists, and playlists", "mode": "view",    "subtitle": "YouTube Music" },
-    { "name": "queue",          "title": "Queue",            "description": "View and manage the current playback queue", "mode": "view",    "subtitle": "YouTube Music" },
-    { "name": "playlists",      "title": "Playlists",        "description": "Browse and play your YouTube Music playlists", "mode": "view",    "subtitle": "YouTube Music" },
-    { "name": "user-info",      "title": "User Info",        "description": "View your YouTube Music account info", "mode": "view",    "subtitle": "YouTube Music" },
-    { "name": "lyrics",         "title": "Lyrics",           "description": "View lyrics for the currently playing track with real-time sync", "mode": "view",    "subtitle": "YouTube Music" },
-    { "name": "login",          "title": "Login",            "description": "Authenticate with YouTube Music using cookies", "mode": "view",    "subtitle": "YouTube Music" }
+    {
+      "name": "play-pause",
+      "title": "Play / Pause",
+      "description": "Play or pause the current track",
+      "mode": "no-view",
+      "subtitle": "YouTube Music"
+    },
+    {
+      "name": "next-track",
+      "title": "Next Track",
+      "description": "Skip to the next track in the queue",
+      "mode": "no-view",
+      "subtitle": "YouTube Music"
+    },
+    {
+      "name": "previous-track",
+      "title": "Previous Track",
+      "description": "Go back to the previous track",
+      "mode": "no-view",
+      "subtitle": "YouTube Music"
+    },
+    {
+      "name": "stop",
+      "title": "Stop",
+      "description": "Stop playback completely",
+      "mode": "no-view",
+      "subtitle": "YouTube Music"
+    },
+    {
+      "name": "set-volume",
+      "title": "Set Volume",
+      "description": "Set the playback volume",
+      "mode": "no-view",
+      "subtitle": "YouTube Music",
+      "arguments": [
+        {
+          "name": "volume",
+          "type": "text",
+          "placeholder": "0-100",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "shuffle",
+      "title": "Toggle Shuffle",
+      "description": "Toggle shuffle mode on or off",
+      "mode": "no-view",
+      "subtitle": "YouTube Music"
+    },
+    {
+      "name": "repeat",
+      "title": "Cycle Repeat",
+      "description": "Cycle through repeat modes: off -> all -> one",
+      "mode": "no-view",
+      "subtitle": "YouTube Music"
+    },
+    {
+      "name": "now-playing",
+      "title": "Now Playing",
+      "description": "View current track and control playback",
+      "mode": "view",
+      "subtitle": "YouTube Music"
+    },
+    {
+      "name": "search",
+      "title": "Search",
+      "description": "Search for songs, artists, and playlists",
+      "mode": "view",
+      "subtitle": "YouTube Music"
+    },
+    {
+      "name": "queue",
+      "title": "Queue",
+      "description": "View and manage the current playback queue",
+      "mode": "view",
+      "subtitle": "YouTube Music"
+    },
+    {
+      "name": "playlists",
+      "title": "Playlists",
+      "description": "Browse and play your YouTube Music playlists",
+      "mode": "view",
+      "subtitle": "YouTube Music"
+    },
+    {
+      "name": "user-info",
+      "title": "User Info",
+      "description": "View your YouTube Music account info",
+      "mode": "view",
+      "subtitle": "YouTube Music"
+    },
+    {
+      "name": "lyrics",
+      "title": "Lyrics",
+      "description": "View lyrics for the currently playing track with real-time sync",
+      "mode": "view",
+      "subtitle": "YouTube Music"
+    },
+    {
+      "name": "login",
+      "title": "Login",
+      "description": "Authenticate with YouTube Music using cookies",
+      "mode": "view",
+      "subtitle": "YouTube Music"
+    }
   ],
   "dependencies": {
     "@hey-api/client-fetch": "^0.13.1",
@@ -54,6 +151,7 @@
     "@hey-api/openapi-ts": "^0.93.1",
     "@raycast/eslint-config": "^2.0.4",
     "@types/node": "22.13.10",
+    "@types/node-fetch": "^2.6.13",
     "@types/react": "19.0.10",
     "eslint": "^9.22.0",
     "prettier": "^3.5.3",

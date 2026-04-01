@@ -81,7 +81,7 @@ function QueueView() {
               <Action
                 title="Clear Entire Queue"
                 icon={Icon.Trash}
-                onAction={() => clearMutation.mutate()}
+                onAction={() => clearMutation.mutate({} as any)}
               />
             </ActionPanel>
           }

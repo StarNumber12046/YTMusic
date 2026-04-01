@@ -5,7 +5,7 @@ import {
   Icon,
   Toast,
   showToast,
-  push,
+  useNavigation,
 } from "@raycast/api";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -39,6 +39,7 @@ export default function Command() {
 }
 
 function NowPlaying() {
+  const { push } = useNavigation();
   const { data, isLoading, error } = useQuery({
     ...getPlayerStateOptions(),
     refetchInterval: 2000,

@@ -40,7 +40,8 @@ export function findCurrentLineIndex(
   if (!lines || lines.length === 0) return -1;
 
   for (let i = lines.length - 1; i >= 0; i--) {
-    const lineTime = "time_ms" in lines[i] ? lines[i].time_ms! : lines[i].timeMs;
+    const line = lines[i];
+    const lineTime = "time_ms" in line ? (line as any).time_ms : (line as any).timeMs;
     if (currentTimeMs >= lineTime) {
       return i;
     }

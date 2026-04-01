@@ -40,7 +40,7 @@ function LyricsView() {
   const [currentLineIndex, setCurrentLineIndex] = useState(-1);
   const lastPositionTimeRef = useRef<number>(Date.now());
   const lastKnownPositionRef = useRef<number>(0);
-  const currentTrackIdRef = useRef<string | undefined>();
+  const currentTrackIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (track?.video_id !== currentTrackIdRef.current) {

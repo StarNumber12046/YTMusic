@@ -10,6 +10,7 @@ A self-contained YouTube Music player backend that authenticates via browser coo
 - **REST API** - Full control over playback, queue, playlists, and search
 - **Swagger UI** - Interactive API documentation
 - **Structured logging** - JSON/text logs via Go's slog
+- **systemd service** - For automatic startup (by @oliik2013)
 
 ## Requirements
 
@@ -22,6 +23,7 @@ A self-contained YouTube Music player backend that authenticates via browser coo
 ```bash
 cd api
 go build -o ytmusic-api .
+install -Dm755 ytmusic-api ~/.local/bin/ytmusic-api
 ```
 
 ## Configuration
@@ -46,6 +48,16 @@ auth:
 ```
 
 The server will start on `http://localhost:8080`.
+
+### Install the systemd service
+
+```bash
+cp -r ./ytmusic-api.service ~/.config/systemd/user/ytmusic-api.service
+systemctl --user daemon-reload
+systemctl --user enable --now ytmusic-api
+```
+
+The app will now start on user login!
 
 ### Authentication
 

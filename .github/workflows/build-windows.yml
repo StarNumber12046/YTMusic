@@ -1,0 +1,145 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  api:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Build API
+        working-directory: ./api
+        run: |
+          go build -o ytmusic-api.exe .
+
+      - name: Upload API artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ytmusic-api-windows
+          path: api/ytmusic-api.exe
+
+  gui:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: mingw64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gtk3
+            mingw-w64-x86_64-glib2
+            mingw-w64-x86_64-cairo
+            mingw-w64-x86_64-gdk-pixbuf2
+
+      - name: Build GUI
+        working-directory: ./gui
+        run: |
+          $env:Path = "C:\msys64\mingw64\bin;$env:Path"
+          go build -o ytmusic-gui.exe .
+
+      - name: Upload GUI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ytmusic-gui-windows
+          path: gui/ytmusic-gui.exe
+
+  tui:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Build TUI
+        working-directory: ./tui
+        run: |
+          go build -o ytmusic-tui.exe .
+
+      - name: Upload TUI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ytmusic-tui-windows
+          path: tui/ytmusic-tui.exe
+
+  raycast:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup pnpm path
+        run: |
+          echo "${{ github.workspace }}/../pnpm" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Install dependencies
+        working-directory: ./youtube-music
+        run: |
+          pnpm install
+
+      - name: Build Raycast extension
+        working-directory: ./youtube-music
+        run: |
+          npx ray build -e dist -o ./dist
+
+      - name: Upload Raycast artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ytmusic-raycast-windows
+          path: youtube-music/dist
+
+  release:
+    needs: [api, gui, tui, raycast]
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ytmusic-api-windows/ytmusic-api.exe
+            ytmusic-gui-windows/ytmusic-gui.exe
+            ytmusic-tui-windows/ytmusic-tui.exe
+            ytmusic-raycast-windows/**/*
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

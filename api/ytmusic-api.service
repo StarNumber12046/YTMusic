@@ -1,0 +1,10 @@
+[Unit]
+Description=YTMusic API (User)
+After=network-online.target sound.target
+Wants=network.target
+[Service]
+ExecStart=%h/.local/bin/ytmusic-api
+Restart=always
+Type=simple
+[Install]
+WantedBy=default.target
