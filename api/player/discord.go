@@ -7,7 +7,7 @@ import (
 
 	"ytmusic_api/models"
 
-	"github.com/rikkuness/discord-rpc"
+	"github.com/777vibecoder/discord-rpc"
 )
 
 type DiscordPresence struct {
@@ -20,33 +20,32 @@ func NewDiscordPresence(clientID string) (*DiscordPresence, error) {
 		return nil, nil
 	}
 
-	drpc, err := discordrpc.New(clientID)
+	client, err := discordrpc.New(clientID)
 	if err != nil {
 		return nil, fmt.Errorf("creating Discord RPC client: %w", err)
 	}
 
-	return &DiscordPresence{
-		client: drpc,
-	}, nil
+	return &DiscordPresence{client: client}, nil
 }
 
 func (d *DiscordPresence) UpdatePresence(track *models.Track, isPlaying bool, positionMs int64) {
-	if d == nil || d.client == nil {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	if d.client == nil || track == nil {
 		return
 	}
 
 	if !isPlaying {
-		d.Clear()
+		d.clearLocked()
 		return
 	}
 
-	d.mu.Lock()
-	defer d.mu.Unlock()
+	activity := d.buildActivity(track, positionMs)
+	_ = d.client.SetActivity(activity)
+}
 
-	if track == nil {
-		return
-	}
-
+func (d *DiscordPresence) buildActivity(track *models.Track, positionMs int64) discordrpc.Activity {
 	activity := discordrpc.Activity{
 		Type:    2, // Listening to
 		Details: track.Title,
@@ -66,28 +65,29 @@ func (d *DiscordPresence) UpdatePresence(track *models.Track, isPlaying bool, po
 		}
 	}
 
-	_ = d.client.SetActivity(activity)
+	return activity
 }
 
 func (d *DiscordPresence) Clear() {
-	if d == nil || d.client == nil {
-		return
-	}
-
 	d.mu.Lock()
 	defer d.mu.Unlock()
+	d.clearLocked()
+}
 
-	emptyActivity := discordrpc.Activity{}
-	_ = d.client.SetActivity(emptyActivity)
+func (d *DiscordPresence) clearLocked() {
+	if d.client == nil {
+		return
+	}
+	_ = d.client.SetActivity(discordrpc.Activity{})
 }
 
 func (d *DiscordPresence) Close() {
-	if d == nil || d.client == nil {
-		return
-	}
-
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
+	if d.client == nil {
+		return
+	}
 	_ = d.client.Socket.Close()
+	d.client = nil
 }
