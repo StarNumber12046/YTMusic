@@ -62,7 +62,7 @@ func NewPlayer(discordClientID string) (*Player, error) {
 
 	discordPresence, err := NewDiscordPresence(discordClientID)
 	if err != nil {
-		fmt.Errorf("initialising Discord presence: %w", err)
+		_ = fmt.Errorf("initialising Discord presence: %w", err)
 	}
 
 	// Attempt to load saved volume from disk and apply it on startup
