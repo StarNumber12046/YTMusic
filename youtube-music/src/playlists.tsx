@@ -151,7 +151,7 @@ function PlaylistDetail({ id }: { id: string }) {
               />
               <Action
                 title="Play Next"
-                icon={Icon.SkipForward}
+                icon={Icon.Forward}
                 shortcut={{ modifiers: ["ctrl", "shift"], key: "return" }}
                 onAction={() =>
                   playNextMutation.mutate({ body: { video_id: track.video_id! } })

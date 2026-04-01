@@ -177,16 +177,15 @@ func (p *Player) Pause() {
 		p.playStartTime = time.Now().Add(-p.pausedDuration)
 
 		// Reinitialize Discord presence on resume
-		if p.discordClientID != "" {
-			if p.discord != nil {
-				p.discord.Close()
-			}
-			discordPresence, err := NewDiscordPresence(p.discordClientID)
-			if err != nil {
-				slog.Error("Failed to reinitialize Discord presence on resume", "error", err)
-			} else {
-				p.discord = discordPresence
-			}
+
+		if p.discord != nil {
+			p.discord.Close()
+		}
+		discordPresence, err := NewDiscordPresence(p.discordClientID)
+		if err != nil {
+			slog.Error("Failed to reinitialize Discord presence on resume", "error", err)
+		} else {
+			p.discord = discordPresence
 		}
 	} else {
 		slog.Info("Pausing playback")

@@ -7,7 +7,7 @@ import (
 
 	"ytmusic_api/models"
 
-	"github.com/777vibecoder/discord-rpc"
+	discordrpc "github.com/777vibecoder/discord-rpc"
 )
 
 type DiscordPresence struct {
@@ -16,10 +16,6 @@ type DiscordPresence struct {
 }
 
 func NewDiscordPresence(clientID string) (*DiscordPresence, error) {
-	if clientID == "" {
-		return nil, nil
-	}
-
 	client, err := discordrpc.New(clientID)
 	if err != nil {
 		return nil, fmt.Errorf("creating Discord RPC client: %w", err)
