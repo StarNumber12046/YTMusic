@@ -17,7 +17,7 @@
         "Id": "cat.misty.ytmusic",
         "License": "MIT",
         "Name": "YouTube Music",
-        "Version": "1.0.0",
+        "Version": "1.0.1",
         "Website": "https://github.com/StarNumber12046/YTMusic"
     },
     "X-Plasma-API-Minimum-Version": "6.0"
