@@ -3,8 +3,8 @@
 import { queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { deleteAuthLogout, deleteQueue, deleteQueueByPosition, getAlbumsById, getArtistsById, getAuthStatus, getLyrics, getPlayerState, getPlaylists, getPlaylistsById, getQueue, getSearch, getUser, type Options, postAuthLogin, postPlayerNext, postPlayerPause, postPlayerPlay, postPlayerPrevious, postPlayerRepeat, postPlayerShuffle, postPlayerStop, postPlayerVolume, postPlaylistsByIdCache, postPlaylistsByIdPlay, postQueueAdd } from '../sdk.gen';
-import type { DeleteAuthLogoutData, DeleteAuthLogoutError, DeleteAuthLogoutResponse, DeleteQueueByPositionData, DeleteQueueByPositionError, DeleteQueueByPositionResponse, DeleteQueueData, DeleteQueueError, DeleteQueueResponse, GetAlbumsByIdData, GetAlbumsByIdError, GetAlbumsByIdResponse, GetArtistsByIdData, GetArtistsByIdError, GetArtistsByIdResponse, GetAuthStatusData, GetAuthStatusError, GetAuthStatusResponse, GetLyricsData, GetLyricsError, GetLyricsResponse, GetPlayerStateData, GetPlayerStateError, GetPlayerStateResponse, GetPlaylistsByIdData, GetPlaylistsByIdError, GetPlaylistsByIdResponse, GetPlaylistsData, GetPlaylistsError, GetPlaylistsResponse, GetQueueData, GetQueueError, GetQueueResponse, GetSearchData, GetSearchError, GetSearchResponse, GetUserData, GetUserError, GetUserResponse, PostAuthLoginData, PostAuthLoginError, PostAuthLoginResponse, PostPlayerNextData, PostPlayerNextError, PostPlayerNextResponse, PostPlayerPauseData, PostPlayerPauseError, PostPlayerPauseResponse, PostPlayerPlayData, PostPlayerPlayError, PostPlayerPlayResponse, PostPlayerPreviousData, PostPlayerPreviousError, PostPlayerPreviousResponse, PostPlayerRepeatData, PostPlayerRepeatError, PostPlayerRepeatResponse, PostPlayerShuffleData, PostPlayerShuffleError, PostPlayerShuffleResponse, PostPlayerStopData, PostPlayerStopError, PostPlayerStopResponse, PostPlayerVolumeData, PostPlayerVolumeError, PostPlayerVolumeResponse, PostPlaylistsByIdCacheData, PostPlaylistsByIdCacheError, PostPlaylistsByIdCacheResponse, PostPlaylistsByIdPlayData, PostPlaylistsByIdPlayError, PostPlaylistsByIdPlayResponse, PostQueueAddData, PostQueueAddError, PostQueueAddResponse } from '../types.gen';
+import { deleteAuthLogout, deleteQueue, deleteQueueByPosition, getAlbumsById, getArtistsById, getAuthStatus, getLyrics, getPlayerState, getPlaylists, getPlaylistsById, getQueue, getSearch, getUser, type Options, postAuthLogin, postPlayerNext, postPlayerPause, postPlayerPlay, postPlayerPrevious, postPlayerRepeat, postPlayerShuffle, postPlayerStop, postPlayerVolume, postPlaylistsByIdCache, postPlaylistsByIdPlay, postQueueAdd, postQueuePlayNext } from '../sdk.gen';
+import type { DeleteAuthLogoutData, DeleteAuthLogoutError, DeleteAuthLogoutResponse, DeleteQueueByPositionData, DeleteQueueByPositionError, DeleteQueueByPositionResponse, DeleteQueueData, DeleteQueueError, DeleteQueueResponse, GetAlbumsByIdData, GetAlbumsByIdError, GetAlbumsByIdResponse, GetArtistsByIdData, GetArtistsByIdError, GetArtistsByIdResponse, GetAuthStatusData, GetAuthStatusError, GetAuthStatusResponse, GetLyricsData, GetLyricsError, GetLyricsResponse, GetPlayerStateData, GetPlayerStateError, GetPlayerStateResponse, GetPlaylistsByIdData, GetPlaylistsByIdError, GetPlaylistsByIdResponse, GetPlaylistsData, GetPlaylistsError, GetPlaylistsResponse, GetQueueData, GetQueueError, GetQueueResponse, GetSearchData, GetSearchError, GetSearchResponse, GetUserData, GetUserError, GetUserResponse, PostAuthLoginData, PostAuthLoginError, PostAuthLoginResponse, PostPlayerNextData, PostPlayerNextError, PostPlayerNextResponse, PostPlayerPauseData, PostPlayerPauseError, PostPlayerPauseResponse, PostPlayerPlayData, PostPlayerPlayError, PostPlayerPlayResponse, PostPlayerPreviousData, PostPlayerPreviousError, PostPlayerPreviousResponse, PostPlayerRepeatData, PostPlayerRepeatError, PostPlayerRepeatResponse, PostPlayerShuffleData, PostPlayerShuffleError, PostPlayerShuffleResponse, PostPlayerStopData, PostPlayerStopError, PostPlayerStopResponse, PostPlayerVolumeData, PostPlayerVolumeError, PostPlayerVolumeResponse, PostPlaylistsByIdCacheData, PostPlaylistsByIdCacheError, PostPlaylistsByIdCacheResponse, PostPlaylistsByIdPlayData, PostPlaylistsByIdPlayError, PostPlaylistsByIdPlayResponse, PostQueueAddData, PostQueueAddError, PostQueueAddResponse, PostQueuePlayNextData, PostQueuePlayNextError, PostQueuePlayNextResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -458,6 +458,25 @@ export const postQueueAddMutation = (options?: Partial<Options<PostQueueAddData>
     const mutationOptions: UseMutationOptions<PostQueueAddResponse, PostQueueAddError, Options<PostQueueAddData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postQueueAdd({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Play track next
+ *
+ * Inserts a track to play immediately after the current track.
+ */
+export const postQueuePlayNextMutation = (options?: Partial<Options<PostQueuePlayNextData>>): UseMutationOptions<PostQueuePlayNextResponse, PostQueuePlayNextError, Options<PostQueuePlayNextData>> => {
+    const mutationOptions: UseMutationOptions<PostQueuePlayNextResponse, PostQueuePlayNextError, Options<PostQueuePlayNextData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await postQueuePlayNext({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

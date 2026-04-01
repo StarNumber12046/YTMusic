@@ -1,17 +1,17 @@
 package main
 
 import (
-	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"ytmusic-gui/api"
 )
 
 type SearchView struct {
-	gui     *GUI
-	input   *widget.Entry
-	list    *widget.List
-	results []api.SearchResult
+	gui      *GUI
+	input    *widget.Entry
+	list     *widget.List
+	results  []api.SearchResult
+	selected int
 }
 
 func NewSearchView(g *GUI) *SearchView {
@@ -44,6 +44,7 @@ func (v *SearchView) Build() fyne.CanvasObject {
 		},
 	)
 	v.list.OnSelected = func(id widget.ListItemID) {
+		v.selected = id
 		if id < len(v.results) {
 			r := v.results[id]
 			if r.Track != nil && v.gui.client != nil {
@@ -54,10 +55,24 @@ func (v *SearchView) Build() fyne.CanvasObject {
 		}
 	}
 
+	playNextBtn := widget.NewButton("Play Next", func() {
+		if v.gui.client == nil {
+			return
+		}
+		id := v.selected
+		if id >= 0 && id < len(v.results) {
+			r := v.results[id]
+			if r.Track != nil {
+				v.gui.client.PlayNext(r.Track.VideoID)
+			}
+		}
+	})
+
 	return container.NewVBox(
-		widget.NewLabel("Search"),
+		widget.NewLabel("Search (Enter to play)"),
 		v.input,
 		v.list,
+		playNextBtn,
 	)
 }
 

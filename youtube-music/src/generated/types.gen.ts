@@ -857,6 +857,38 @@ export type PostQueueAddResponses = {
 
 export type PostQueueAddResponse = PostQueueAddResponses[keyof PostQueueAddResponses];
 
+export type PostQueuePlayNextData = {
+    /**
+     * Track to play next
+     */
+    body: ModelsQueueAddRequest;
+    path?: never;
+    query?: never;
+    url: '/queue/play-next';
+};
+
+export type PostQueuePlayNextErrors = {
+    /**
+     * Bad Request
+     */
+    400: ModelsErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: ModelsErrorResponse;
+};
+
+export type PostQueuePlayNextError = PostQueuePlayNextErrors[keyof PostQueuePlayNextErrors];
+
+export type PostQueuePlayNextResponses = {
+    /**
+     * OK
+     */
+    200: ModelsQueueResponse;
+};
+
+export type PostQueuePlayNextResponse = PostQueuePlayNextResponses[keyof PostQueuePlayNextResponses];
+
 export type DeleteQueueByPositionData = {
     body?: never;
     path: {

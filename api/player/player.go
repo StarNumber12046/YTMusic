@@ -268,6 +268,12 @@ func (p *Player) Next() (*models.Track, error) {
 	return next, nil
 }
 
+// PlayNext inserts a track to play immediately after the current track.
+func (p *Player) PlayNext(track *models.Track) error {
+	p.Queue.PlayNext(*track)
+	return nil
+}
+
 // Previous goes back to the previous track in the queue.
 func (p *Player) Previous() (*models.Track, error) {
 	prev := p.Queue.Previous()

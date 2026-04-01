@@ -174,6 +174,19 @@ func (c *Client) AddToQueue(videoID string) error {
 	return nil
 }
 
+func (c *Client) PlayNext(videoID string) error {
+	resp, err := c.restClient.R().
+		SetBody(map[string]string{"video_id": videoID}).
+		Post("/queue/play-next")
+	if err != nil {
+		return err
+	}
+	if resp.IsError() {
+		return fmt.Errorf("api error: %s", resp.String())
+	}
+	return nil
+}
+
 func (c *Client) ClearQueue() error {
 	resp, err := c.restClient.R().Delete("/queue")
 	if err != nil {

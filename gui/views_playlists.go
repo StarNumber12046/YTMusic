@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"ytmusic-gui/api"
@@ -11,6 +10,7 @@ type PlaylistsView struct {
 	gui       *GUI
 	list      *widget.List
 	playlists []api.Playlist
+	selected  int
 }
 
 func NewPlaylistsView(g *GUI) *PlaylistsView {
@@ -33,10 +33,25 @@ func (v *PlaylistsView) Build() fyne.CanvasObject {
 		},
 	)
 	v.list.OnSelected = func(id widget.ListItemID) {
+		v.selected = id
 		if id < len(v.playlists) && v.gui.client != nil {
 			v.gui.client.PlayPlaylist(v.playlists[id].ID)
 		}
 	}
+
+	playNextBtn := widget.NewButton("Play Selected Next", func() {
+		if v.gui.client == nil {
+			return
+		}
+		id := v.selected
+		if id >= 0 && id < len(v.playlists) {
+			playlist, err := v.gui.client.GetPlaylist(v.playlists[id].ID)
+			if err != nil || len(playlist.Tracks) == 0 {
+				return
+			}
+			v.gui.client.PlayNext(playlist.Tracks[0].VideoID)
+		}
+	})
 
 	refreshBtn := widget.NewButton("Refresh", func() {
 		v.loadPlaylists()
@@ -45,9 +60,10 @@ func (v *PlaylistsView) Build() fyne.CanvasObject {
 	v.loadPlaylists()
 
 	return container.NewVBox(
-		widget.NewLabel("Playlists"),
+		widget.NewLabel("Playlists (select to play)"),
 		refreshBtn,
 		v.list,
+		playNextBtn,
 	)
 }
 

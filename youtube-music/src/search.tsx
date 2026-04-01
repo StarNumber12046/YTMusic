@@ -16,6 +16,7 @@ import {
   getAlbumsByIdOptions,
   postPlayerPlayMutation,
   postQueueAddMutation,
+  postQueuePlayNextMutation,
 } from "./generated/@tanstack/react-query.gen";
 
 export default function Command() {
@@ -57,9 +58,12 @@ function SearchView() {
       showToast(Toast.Style.Failure, "Failed to add to queue", String(err)),
   });
 
-  if (error) {
-    showToast(Toast.Style.Failure, "Search Failed", String(error));
-  }
+  const playNextMutation = useMutation({
+    ...postQueuePlayNextMutation(),
+    onSuccess: () => showToast(Toast.Style.Success, "Playing next"),
+    onError: (err) =>
+      showToast(Toast.Style.Failure, "Failed to play next", String(err)),
+  });
 
   return (
     <List
@@ -98,6 +102,16 @@ function SearchView() {
                     icon={Icon.Play}
                     onAction={() =>
                       playMutation.mutate({
+                        body: { video_id: result.track!.video_id! },
+                      })
+                    }
+                  />
+                  <Action
+                    title="Play Next"
+                    icon={Icon.SkipForward}
+                    shortcut={{ modifiers: ["ctrl", "shift"], key: "return" }}
+                    onAction={() =>
+                      playNextMutation.mutate({
                         body: { video_id: result.track!.video_id! },
                       })
                     }
@@ -201,6 +215,13 @@ function ArtistDetail({ browseId }: { browseId: string }) {
       showToast(Toast.Style.Failure, "Failed to add to queue", String(err)),
   });
 
+  const playNextMutation = useMutation({
+    ...postQueuePlayNextMutation(),
+    onSuccess: () => showToast(Toast.Style.Success, "Playing next"),
+    onError: (err) =>
+      showToast(Toast.Style.Failure, "Failed to play next", String(err)),
+  });
+
   return (
     <List
       isLoading={isLoading}
@@ -221,6 +242,14 @@ function ArtistDetail({ browseId }: { browseId: string }) {
                   icon={Icon.Play}
                   onAction={() =>
                     playMutation.mutate({ body: { video_id: track.video_id! } })
+                  }
+                />
+                <Action
+                  title="Play Next"
+                  icon={Icon.SkipForward}
+                  shortcut={{ modifiers: ["ctrl", "shift"], key: "return" }}
+                  onAction={() =>
+                    playNextMutation.mutate({ body: { video_id: track.video_id! } })
                   }
                 />
                 <Action
@@ -281,6 +310,13 @@ function AlbumDetail({ browseId }: { browseId: string }) {
       showToast(Toast.Style.Failure, "Failed to add to queue", String(err)),
   });
 
+  const playNextMutation = useMutation({
+    ...postQueuePlayNextMutation(),
+    onSuccess: () => showToast(Toast.Style.Success, "Playing next"),
+    onError: (err) =>
+      showToast(Toast.Style.Failure, "Failed to play next", String(err)),
+  });
+
   return (
     <List
       isLoading={isLoading}
@@ -300,6 +336,14 @@ function AlbumDetail({ browseId }: { browseId: string }) {
                 icon={Icon.Play}
                 onAction={() =>
                   playMutation.mutate({ body: { video_id: track.video_id! } })
+                }
+              />
+              <Action
+                title="Play Next"
+                icon={Icon.SkipForward}
+                shortcut={{ modifiers: ["ctrl", "shift"], key: "return" }}
+                onAction={() =>
+                  playNextMutation.mutate({ body: { video_id: track.video_id! } })
                 }
               />
               <Action

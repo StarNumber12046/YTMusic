@@ -140,3 +140,41 @@ func (h *QueueHandler) RemoveFromQueue(c *gin.Context) {
 	// Return updated queue
 	h.GetQueue(c)
 }
+
+// PlayNext godoc
+// @Summary      Play track next
+// @Description  Inserts a track to play immediately after the current track.
+// @Tags         queue
+// @Accept       json
+// @Produce      json
+// @Security     ApiKeyAuth
+// @Param        body body models.QueueAddRequest true "Track to play next"
+// @Success      200 {object} models.QueueResponse
+// @Failure      400 {object} models.ErrorResponse
+// @Failure      401 {object} models.ErrorResponse
+// @Router       /queue/play-next [post]
+func (h *QueueHandler) PlayNext(c *gin.Context) {
+	session := middleware.GetSession(c)
+
+	var req models.QueueAddRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: "invalid request body: " + err.Error(),
+			Code:  http.StatusBadRequest,
+		})
+		return
+	}
+
+	// Try to fetch track info
+	track := models.Track{VideoID: req.VideoID}
+	if session != nil {
+		if info, err := h.Client.GetSongInfo(session, req.VideoID); err == nil && info != nil {
+			track = *info
+		}
+	}
+
+	h.Player.PlayNext(&track)
+
+	// Return updated queue
+	h.GetQueue(c)
+}

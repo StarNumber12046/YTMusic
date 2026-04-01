@@ -113,6 +113,21 @@
       "subtitle": "YouTube Music"
     },
     {
+      "name": "play-next",
+      "title": "Play Next",
+      "description": "Play a track next in the queue",
+      "mode": "no-view",
+      "subtitle": "YouTube Music",
+      "arguments": [
+        {
+          "name": "videoId",
+          "type": "text",
+          "placeholder": "YouTube video ID",
+          "required": true
+        }
+      ]
+    },
+    {
       "name": "playlists",
       "title": "Playlists",
       "description": "Browse and play your YouTube Music playlists",

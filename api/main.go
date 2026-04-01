@@ -183,6 +183,7 @@ func main() {
 		// Queue
 		auth.GET("/queue", queueHandler.GetQueue)
 		auth.POST("/queue/add", queueHandler.AddToQueue)
+		auth.POST("/queue/play-next", queueHandler.PlayNext)
 		auth.DELETE("/queue", queueHandler.ClearQueue)
 		auth.DELETE("/queue/:position", queueHandler.RemoveFromQueue)
 

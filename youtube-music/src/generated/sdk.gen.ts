@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteAuthLogoutData, DeleteAuthLogoutErrors, DeleteAuthLogoutResponses, DeleteQueueByPositionData, DeleteQueueByPositionErrors, DeleteQueueByPositionResponses, DeleteQueueData, DeleteQueueErrors, DeleteQueueResponses, GetAlbumsByIdData, GetAlbumsByIdErrors, GetAlbumsByIdResponses, GetArtistsByIdData, GetArtistsByIdErrors, GetArtistsByIdResponses, GetAuthStatusData, GetAuthStatusErrors, GetAuthStatusResponses, GetLyricsData, GetLyricsErrors, GetLyricsResponses, GetPlayerStateData, GetPlayerStateErrors, GetPlayerStateResponses, GetPlaylistsByIdData, GetPlaylistsByIdErrors, GetPlaylistsByIdResponses, GetPlaylistsData, GetPlaylistsErrors, GetPlaylistsResponses, GetQueueData, GetQueueErrors, GetQueueResponses, GetSearchData, GetSearchErrors, GetSearchResponses, GetUserData, GetUserErrors, GetUserResponses, PostAuthLoginData, PostAuthLoginErrors, PostAuthLoginResponses, PostPlayerNextData, PostPlayerNextErrors, PostPlayerNextResponses, PostPlayerPauseData, PostPlayerPauseErrors, PostPlayerPauseResponses, PostPlayerPlayData, PostPlayerPlayErrors, PostPlayerPlayResponses, PostPlayerPreviousData, PostPlayerPreviousErrors, PostPlayerPreviousResponses, PostPlayerRepeatData, PostPlayerRepeatErrors, PostPlayerRepeatResponses, PostPlayerShuffleData, PostPlayerShuffleErrors, PostPlayerShuffleResponses, PostPlayerStopData, PostPlayerStopErrors, PostPlayerStopResponses, PostPlayerVolumeData, PostPlayerVolumeErrors, PostPlayerVolumeResponses, PostPlaylistsByIdCacheData, PostPlaylistsByIdCacheErrors, PostPlaylistsByIdCacheResponses, PostPlaylistsByIdPlayData, PostPlaylistsByIdPlayErrors, PostPlaylistsByIdPlayResponses, PostQueueAddData, PostQueueAddErrors, PostQueueAddResponses } from './types.gen';
+import type { DeleteAuthLogoutData, DeleteAuthLogoutErrors, DeleteAuthLogoutResponses, DeleteQueueByPositionData, DeleteQueueByPositionErrors, DeleteQueueByPositionResponses, DeleteQueueData, DeleteQueueErrors, DeleteQueueResponses, GetAlbumsByIdData, GetAlbumsByIdErrors, GetAlbumsByIdResponses, GetArtistsByIdData, GetArtistsByIdErrors, GetArtistsByIdResponses, GetAuthStatusData, GetAuthStatusErrors, GetAuthStatusResponses, GetLyricsData, GetLyricsErrors, GetLyricsResponses, GetPlayerStateData, GetPlayerStateErrors, GetPlayerStateResponses, GetPlaylistsByIdData, GetPlaylistsByIdErrors, GetPlaylistsByIdResponses, GetPlaylistsData, GetPlaylistsErrors, GetPlaylistsResponses, GetQueueData, GetQueueErrors, GetQueueResponses, GetSearchData, GetSearchErrors, GetSearchResponses, GetUserData, GetUserErrors, GetUserResponses, PostAuthLoginData, PostAuthLoginErrors, PostAuthLoginResponses, PostPlayerNextData, PostPlayerNextErrors, PostPlayerNextResponses, PostPlayerPauseData, PostPlayerPauseErrors, PostPlayerPauseResponses, PostPlayerPlayData, PostPlayerPlayErrors, PostPlayerPlayResponses, PostPlayerPreviousData, PostPlayerPreviousErrors, PostPlayerPreviousResponses, PostPlayerRepeatData, PostPlayerRepeatErrors, PostPlayerRepeatResponses, PostPlayerShuffleData, PostPlayerShuffleErrors, PostPlayerShuffleResponses, PostPlayerStopData, PostPlayerStopErrors, PostPlayerStopResponses, PostPlayerVolumeData, PostPlayerVolumeErrors, PostPlayerVolumeResponses, PostPlaylistsByIdCacheData, PostPlaylistsByIdCacheErrors, PostPlaylistsByIdCacheResponses, PostPlaylistsByIdPlayData, PostPlaylistsByIdPlayErrors, PostPlaylistsByIdPlayResponses, PostQueueAddData, PostQueueAddErrors, PostQueueAddResponses, PostQueuePlayNextData, PostQueuePlayNextErrors, PostQueuePlayNextResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -271,6 +271,21 @@ export const getQueue = <ThrowOnError extends boolean = false>(options?: Options
 export const postQueueAdd = <ThrowOnError extends boolean = false>(options: Options<PostQueueAddData, ThrowOnError>) => (options.client ?? client).post<PostQueueAddResponses, PostQueueAddErrors, ThrowOnError>({
     security: [{ name: 'X-Session-Token', type: 'apiKey' }],
     url: '/queue/add',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Play track next
+ *
+ * Inserts a track to play immediately after the current track.
+ */
+export const postQueuePlayNext = <ThrowOnError extends boolean = false>(options: Options<PostQueuePlayNextData, ThrowOnError>) => (options.client ?? client).post<PostQueuePlayNextResponses, PostQueuePlayNextErrors, ThrowOnError>({
+    security: [{ name: 'X-Session-Token', type: 'apiKey' }],
+    url: '/queue/play-next',
     ...options,
     headers: {
         'Content-Type': 'application/json',

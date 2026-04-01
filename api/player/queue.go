@@ -231,3 +231,34 @@ func (q *Queue) Unshuffle() {
 		}
 	}
 }
+
+// PlayNext inserts a track right after the current position (or at the end if queue is empty).
+// The track will become the next track to play.
+func (q *Queue) PlayNext(track models.Track) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	insertPos := q.position + 1
+	if insertPos > len(q.items) {
+		insertPos = len(q.items)
+	}
+
+	// Insert track at the specified position
+	items := make([]models.Track, len(q.items)+1)
+	copy(items[:insertPos], q.items[:insertPos])
+	items[insertPos] = track
+	copy(items[insertPos+1:], q.items[insertPos:])
+	q.items = items
+
+	// If queue was empty, set position to 0
+	if len(q.items) == 1 {
+		q.position = 0
+	} else if q.position >= insertPos {
+		// If we inserted before or at current position, advance position
+		q.position++
+	}
+
+	if DefaultCacheManager != nil {
+		DefaultCacheManager.QueueDownload(track.VideoID)
+	}
+}

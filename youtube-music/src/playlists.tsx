@@ -17,6 +17,7 @@ import {
   postPlaylistsByIdCacheMutation,
   postPlayerPlayMutation,
   postQueueAddMutation,
+  postQueuePlayNextMutation,
 } from "./generated/@tanstack/react-query.gen";
 
 export default function Command() {
@@ -120,6 +121,13 @@ function PlaylistDetail({ id }: { id: string }) {
       showToast(Toast.Style.Failure, "Failed to add to queue", String(err)),
   });
 
+  const playNextMutation = useMutation({
+    ...postQueuePlayNextMutation(),
+    onSuccess: () => showToast(Toast.Style.Success, "Playing next"),
+    onError: (err) =>
+      showToast(Toast.Style.Failure, "Failed to play next", String(err)),
+  });
+
   return (
     <List
       isLoading={isLoading}
@@ -139,6 +147,14 @@ function PlaylistDetail({ id }: { id: string }) {
                 icon={Icon.Play}
                 onAction={() =>
                   playMutation.mutate({ body: { video_id: track.video_id! } })
+                }
+              />
+              <Action
+                title="Play Next"
+                icon={Icon.SkipForward}
+                shortcut={{ modifiers: ["ctrl", "shift"], key: "return" }}
+                onAction={() =>
+                  playNextMutation.mutate({ body: { video_id: track.video_id! } })
                 }
               />
               <Action
