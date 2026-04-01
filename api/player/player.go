@@ -33,7 +33,8 @@ type Player struct {
 
 	Queue *Queue
 
-	discord *DiscordPresence
+	discord         *DiscordPresence
+	discordClientID string
 
 	currentTrack   *models.Track
 	isPlaying      bool
@@ -73,11 +74,12 @@ func NewPlayer(discordClientID string) (*Player, error) {
 	}
 
 	p := &Player{
-		otoCtx:   otoCtx,
-		ytClient: &yt.Client{},
-		Queue:    NewQueue(),
-		volume:   vol,
-		discord:  discordPresence,
+		otoCtx:          otoCtx,
+		ytClient:        &yt.Client{},
+		Queue:           NewQueue(),
+		volume:          vol,
+		discord:         discordPresence,
+		discordClientID: discordClientID,
 	}
 	// Start media-key/headphone event listener for playback controls
 	go StartMediaEventDispatcher(p)
@@ -133,6 +135,16 @@ func (p *Player) PlayTrack(track *models.Track) error {
 	p.playStartTime = time.Now()
 	p.pausedDuration = 0
 
+	// Reinitialize Discord presence if needed (e.g., after pause was closed)
+	if p.discordClientID != "" && p.discord == nil {
+		discordPresence, err := NewDiscordPresence(p.discordClientID)
+		if err != nil {
+			slog.Error("Failed to reinitialize Discord presence", "error", err)
+		} else {
+			p.discord = discordPresence
+		}
+	}
+
 	// Update Discord presence
 	if p.discord != nil {
 		p.discord.UpdatePresence(track, true, 0)
@@ -163,17 +175,33 @@ func (p *Player) Pause() {
 		p.isPlaying = true
 		// Adjust play start time to account for paused duration
 		p.playStartTime = time.Now().Add(-p.pausedDuration)
+
+		// Reinitialize Discord presence on resume
+		if p.discordClientID != "" {
+			if p.discord != nil {
+				p.discord.Close()
+			}
+			discordPresence, err := NewDiscordPresence(p.discordClientID)
+			if err != nil {
+				slog.Error("Failed to reinitialize Discord presence on resume", "error", err)
+			} else {
+				p.discord = discordPresence
+			}
+		}
 	} else {
 		slog.Info("Pausing playback")
 		p.otoPlayer.Pause()
 		p.isPaused = true
-		// we leave p.isPlaying as true or false? If paused, isPlaying is typically false in the API response.
-		// The frontend expects: isPlaying = true, isPaused = false for playing.
-		// For paused: isPlaying = true, isPaused = true or isPlaying = false, isPaused = true.
 		p.isPlaying = false
+
+		// Close Discord presence completely on pause
+		if p.discord != nil {
+			p.discord.Close()
+			p.discord = nil
+		}
 	}
 
-	// Update Discord presence
+	// Update Discord presence (or it will be reinitialized on resume)
 	if p.discord != nil {
 		positionMs := p.currentPositionMs()
 		p.discord.UpdatePresence(p.currentTrack, !p.isPaused, positionMs)
