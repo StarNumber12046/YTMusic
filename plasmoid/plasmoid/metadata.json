@@ -1,0 +1,24 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "starnumber.official12046@gmail.com",
+                "Name": "StarNumber"
+            },
+            {
+                "Email": "oliik2013@oliik2013.thedev.me",
+                "Name": "oliik2013"
+            }
+        ],
+        "Category": "Multimedia",
+        "Description": "A YouTube Music player widget for Plasma",
+        "Icon": "images/icon.png",
+        "Id": "cat.misty.ytmusic",
+        "License": "MIT",
+        "Name": "YouTube Music",
+        "Version": "1.0.1",
+        "Website": "https://github.com/StarNumber12046/YTMusic"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
